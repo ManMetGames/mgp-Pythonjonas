@@ -67,23 +67,47 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	//Sprints and crouches
+	void SprintStart();
+	void SprintEnd();
+	void CrouchStart();
+	void CrouchEnd();
+	virtual void Tick(float DeltaTime) override;
+
+private:
+	bool bIsSprinting = false;
+	bool bIsCrouching = false;
+
 public:
+	// Input Actions — assign these in your Input Mapping Context (Blueprints)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* SprintAction;
 
-	/** Handles move inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoMove(float Right, float Forward);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* CrouchAction;
 
-	/** Handles look inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoLook(float Yaw, float Pitch);
+	// Speeds
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float WalkSpeed = 300.0f;
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpStart();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float SprintSpeed = 600.0f;
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpEnd();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float CrouchSpeed = 150.0f;
+
+	// Stamina
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float MaxStamina = 100.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float Stamina = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float StaminaDrain = 20.0f;   // per second
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float StaminaRegen = 10.0f;   // per second
 
 public:
 
