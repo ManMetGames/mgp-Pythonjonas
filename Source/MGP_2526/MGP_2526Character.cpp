@@ -14,7 +14,7 @@
 
 AMGP_2526Character::AMGP_2526Character()
 {
-    PrimaryActorTick.bCanEverTick = true; // for stamina and crouching
+    PrimaryActorTick.bCanEverTick = true; // for stamina
 
     GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -41,7 +41,7 @@ AMGP_2526Character::AMGP_2526Character()
     FollowCamera->bUsePawnControlRotation = false;
 }
 
-// Tick: stamina drain/regen 
+// Tick: stamina drain/regen
 
 void AMGP_2526Character::Tick(float DeltaTime)
 {
@@ -53,7 +53,7 @@ void AMGP_2526Character::Tick(float DeltaTime)
         if (Stamina <= 0.0f)
         {
             Stamina = 0.0f;
-            SprintEnd(); // stop sprinting
+            SprintEnd(); // out of stamina, stop sprinting
         }
     }
     else
@@ -72,7 +72,7 @@ void AMGP_2526Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
         EIC->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
         EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-        // Move & Look around
+        // Move & Look
         EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMGP_2526Character::Move);
         EIC->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AMGP_2526Character::Look);
         EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMGP_2526Character::Look);
@@ -80,10 +80,6 @@ void AMGP_2526Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
         // Sprint (Shift)
         EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &AMGP_2526Character::SprintStart);
         EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMGP_2526Character::SprintEnd);
-
-        // Crouch (left ctrl)
-        EIC->BindAction(CrouchAction, ETriggerEvent::Started, this, &AMGP_2526Character::CrouchStart);
-        EIC->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AMGP_2526Character::CrouchEnd);
     }
     else
     {
@@ -91,12 +87,12 @@ void AMGP_2526Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
     }
 }
 
-//  Sprint 
+// Sprint
 
 void AMGP_2526Character::SprintStart()
 {
-    // Can't sprint while crouching or with no stamina
-    if (bIsCrouching || Stamina <= 0.0f) return;
+    // Can't sprint with no stamina
+    if (Stamina <= 0.0f) return;
 
     bIsSprinting = true;
     GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
@@ -108,36 +104,6 @@ void AMGP_2526Character::SprintEnd()
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
-//  Crouching
-
-void AMGP_2526Character::CrouchStart()
-{
-    // Stop sprinting 
-    if (bIsSprinting) SprintEnd();
-
-    bIsCrouching = true;
-    GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
-    Crouch(); 
-
-void AMGP_2526Character::CrouchEnd()
-{
-    bIsCrouching = false;
-    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    UnCrouch();
-}
-
-
-void AMGP_2526Character::Move(const FInputActionValue& Value)
-{
-    FVector2D MovementVector = Value.Get<FVector2D>();
-    DoMove(MovementVector.X, MovementVector.Y);
-}
-
-void AMGP_2526Character::Look(const FInputActionValue& Value)
-{
-    FVector2D LookAxisVector = Value.Get<FVector2D>();
-    DoLook(LookAxisVector.X, LookAxisVector.Y);
-}
 
 void AMGP_2526Character::DoMove(float Right, float Forward)
 {
@@ -152,6 +118,7 @@ void AMGP_2526Character::DoMove(float Right, float Forward)
     }
 }
 
+
 void AMGP_2526Character::DoLook(float Yaw, float Pitch)
 {
     if (GetController() != nullptr)
@@ -163,3 +130,17 @@ void AMGP_2526Character::DoLook(float Yaw, float Pitch)
 
 void AMGP_2526Character::DoJumpStart() { Jump(); }
 void AMGP_2526Character::DoJumpEnd() { StopJumping(); }
+
+
+
+void AMGP_2526Character::Move(const FInputActionValue& Value)
+{
+    FVector2D MovementVector = Value.Get<FVector2D>();
+    DoMove(MovementVector.X, MovementVector.Y);
+}
+
+void AMGP_2526Character::Look(const FInputActionValue& Value)
+{
+    FVector2D LookAxisVector = Value.Get<FVector2D>();
+    DoLook(LookAxisVector.X, LookAxisVector.Y);
+}
