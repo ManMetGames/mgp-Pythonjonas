@@ -46,6 +46,11 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Input")
     UInputAction* MouseLookAction;
 
+    //Crouch test
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* CrouchAction;
+
+
 public:
     /** Constructor */
     AMGP_2526Character();
@@ -67,6 +72,14 @@ protected:
     void SprintStart();
     void SprintEnd();
 
+    //Crouch input handler
+   void CrouchStart();
+    void CrouchEnd();
+ 
+private:
+    bool bIsSprinting = false;
+    bool bIsSprinting = true;
+    float TargetCameraZ;
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void DoMove(float Right, float Forward);
@@ -79,9 +92,6 @@ protected:
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void DoJumpEnd();
-
-private:
-    bool bIsSprinting = false;
 
 public:
     /** Sprint Input Action — assign in your Input Mapping Context */

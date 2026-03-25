@@ -14,7 +14,7 @@
 
 AMGP_2526Character::AMGP_2526Character()
 {
-    PrimaryActorTick.bCanEverTick = true; // for stamina
+    PrimaryActorTick.bCanEverTick = true; //  stamina
 
     GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -30,6 +30,8 @@ AMGP_2526Character::AMGP_2526Character()
     GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
     GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
     GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+    
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
@@ -60,6 +62,16 @@ void AMGP_2526Character::Tick(float DeltaTime)
     {
         Stamina = FMath::Min(Stamina + StaminaRegen * DeltaTime, MaxStamina);
     }
+
+
+    {
+        Super::Tick(DeltaTime);
+        FVector CameraLocation = FollowCamera->GetForwardVector();
+        float NewZ = FMath::FInterpTo(CameraLocation.Z, TargetCameraZ, DeltaTime, 10.0f);
+        FollowCamera->SetRelativeLocation(FVector(CameraLocation.X, CameraLocation.Y, NewZ));
+    };
+    
+
 }
 
 // Input bindings
@@ -80,6 +92,14 @@ void AMGP_2526Character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
         // Sprint (Shift)
         EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &AMGP_2526Character::SprintStart);
         EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMGP_2526Character::SprintEnd);
+
+        //Crouch (LeftCTRL)
+       // PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMGP_2526Character::CrouchStart);
+       // PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMGP_2526Character::CrouchEnd);
+       
+        EIC->BindAction(CrouchAction, ETriggerEvent::Started, this, &AMGP_2526Character::CrouchStart);
+        EIC->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AMGP_2526Character::CrouchEnd);
+
     }
     else
     {
@@ -104,6 +124,21 @@ void AMGP_2526Character::SprintEnd()
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
+
+//crouching
+void AMGP_2526Character::CrouchStart()
+{
+    Crouch();
+    GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+    TargetCameraZ = 40.0f;
+}
+
+void AMGP_2526Character::CrouchEnd()
+{
+    UnCrouch();
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    TargetCameraZ = 40.0f;
+}
 
 void AMGP_2526Character::DoMove(float Right, float Forward)
 {
