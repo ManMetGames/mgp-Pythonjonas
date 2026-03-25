@@ -78,8 +78,9 @@ protected:
  
 private:
     bool bIsSprinting = false;
-    bool bIsSprinting = true;
+    bool bIsCrouching = false;
     float TargetCameraZ;
+    
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void DoMove(float Right, float Forward);
