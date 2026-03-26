@@ -64,12 +64,12 @@ void AMGP_2526Character::Tick(float DeltaTime)
     }
 
 
-    {
-        Super::Tick(DeltaTime);
-        FVector CameraLocation = FollowCamera->GetForwardVector();
-        float NewZ = FMath::FInterpTo(CameraLocation.Z, TargetCameraZ, DeltaTime, 10.0f);
-        FollowCamera->SetRelativeLocation(FVector(CameraLocation.X, CameraLocation.Y, NewZ));
-    };
+   // {
+     //   Super::Tick(DeltaTime);
+    //    FVector CameraLocation = FollowCamera->GetForwardVector();
+    //    float NewZ = FMath::FInterpTo(CameraLocation.Z, TargetCameraZ, DeltaTime, 10.0f);
+    //    FollowCamera->SetRelativeLocation(FVector(CameraLocation.X, CameraLocation.Y, NewZ));
+   // };
     
 
 }
@@ -130,14 +130,14 @@ void AMGP_2526Character::CrouchStart()
 {
     Crouch();
     GetCharacterMovement()->MaxWalkSpeed = 200.0f;
-    TargetCameraZ = 40.0f;
+    //TargetCameraZ = 40.0f;
 }
 
 void AMGP_2526Character::CrouchEnd()
 {
     UnCrouch();
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    TargetCameraZ = 40.0f;
+   // TargetCameraZ = 40.0f;
 }
 
 void AMGP_2526Character::DoMove(float Right, float Forward)

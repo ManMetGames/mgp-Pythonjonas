@@ -79,7 +79,7 @@ protected:
 private:
     bool bIsSprinting = false;
     bool bIsCrouching = false;
-    float TargetCameraZ;
+  //  float TargetCameraZ;
     
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
