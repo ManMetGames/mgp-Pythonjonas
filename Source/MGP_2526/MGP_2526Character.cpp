@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "MGP_2526.h"
+#include "Perception/AISense_hearing.h"
 
 AMGP_2526Character::AMGP_2526Character()
 {
@@ -128,6 +129,7 @@ void AMGP_2526Character::SprintEnd()
 //crouching
 void AMGP_2526Character::CrouchStart()
 {
+    bIsCrouching = true;
     Crouch();
     GetCharacterMovement()->MaxWalkSpeed = 200.0f;
     //TargetCameraZ = 40.0f;
@@ -135,6 +137,7 @@ void AMGP_2526Character::CrouchStart()
 
 void AMGP_2526Character::CrouchEnd()
 {
+    bIsCrouching = false;
     UnCrouch();
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
    // TargetCameraZ = 40.0f;
@@ -172,6 +175,34 @@ void AMGP_2526Character::Move(const FInputActionValue& Value)
 {
     FVector2D MovementVector = Value.Get<FVector2D>();
     DoMove(MovementVector.X, MovementVector.Y);
+
+    //I want to have varying loudness based on the players movement:
+
+    float Loudness = 0.0f;
+    
+    if (bIsCrouching)
+    {
+        Loudness = 0.1f; //mouse
+    }
+
+    else if (bIsSprinting)
+    {
+        Loudness = 1.0f; //loud (stop)
+    }
+
+    else
+    {
+        Loudness = 0.5f; // default
+    }
+
+    UAISense_Hearing::ReportNoiseEvent(
+        GetWorld(),
+        GetActorLocation(),
+        Loudness,
+        this,
+        0.f,
+        FName("Footstep")
+    );
 }
 
 void AMGP_2526Character::Look(const FInputActionValue& Value)
