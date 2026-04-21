@@ -18,7 +18,8 @@ public class MGP_2526 : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"NavigationSystem",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
