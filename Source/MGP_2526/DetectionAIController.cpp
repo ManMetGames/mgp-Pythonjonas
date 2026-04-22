@@ -1,6 +1,7 @@
 #include "DetectionAIController.h"
 #include "EnemyCharacter.h"
 #include "Animation/AnimInstance.h"
+#include "EnemyAnimInstance.h"
 
 ADetectionAIController::ADetectionAIController()
 {
@@ -32,17 +33,15 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
     CurrentState = NewState;
 
-    // Get the enemy character and its anim instance
     ACharacter* Character = Cast<ACharacter>(GetPawn());
     if (!Character) return;
 
-    UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+    UEnemyAnimInstance* AnimInstance = Cast<UEnemyAnimInstance>(Character->GetMesh()->GetAnimInstance());
     if (!AnimInstance) return;
 
-    // Update the animation blueprint variables
-    AnimInstance->SetVariableByLabel(TEXT("bIsSuspicious"), CurrentState == EDetectionState::Suspicious);
-    AnimInstance->SetVariableByLabel(TEXT("bIsSearching"), CurrentState == EDetectionState::Searching);
-    AnimInstance->SetVariableByLabel(TEXT("bIsAlerted"), CurrentState == EDetectionState::Alert);
+    AnimInstance->bIsSuspicious = (CurrentState == EDetectionState::Suspicious);
+    AnimInstance->bIsSearching = (CurrentState == EDetectionState::Searching);
+    AnimInstance->bIsAlerted = (CurrentState == EDetectionState::Alert);
 }
 
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
