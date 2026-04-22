@@ -33,10 +33,10 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
     CurrentState = NewState;
 
-    ACharacter* Character = Cast<ACharacter>(GetPawn());
-    if (!Character) return;
+    ACharacter* EnemyChar = Cast<ACharacter>(GetPawn());
+    if (!EnemyChar) return;
 
-    UEnemyAnimInstance* AnimInstance = Cast<UEnemyAnimInstance>(Character->GetMesh()->GetAnimInstance());
+    UEnemyAnimInstance* AnimInstance = Cast<UEnemyAnimInstance>(EnemyChar->GetMesh()->GetAnimInstance());
     if (!AnimInstance) return;
 
     AnimInstance->bIsSuspicious = (CurrentState == EDetectionState::Suspicious);
