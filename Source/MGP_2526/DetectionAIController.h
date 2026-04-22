@@ -46,4 +46,7 @@ private:
     bool bIsInvestigating = false;
 
     EDetectionState CurrentState = EDetectionState::Idle;
+    FTimerHandle ResetTimerHandle;
+
+    void ResetToIdle();
 };

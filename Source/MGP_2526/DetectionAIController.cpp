@@ -34,11 +34,20 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
     CurrentState = NewState;
 
     ACharacter* EnemyChar = Cast<ACharacter>(GetPawn());
-    if (!EnemyChar) return;
+    if (!EnemyChar)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EnemyChar cast failed!"));
+        return;
+    }
 
     UEnemyAnimInstance* AnimInstance = Cast<UEnemyAnimInstance>(EnemyChar->GetMesh()->GetAnimInstance());
-    if (!AnimInstance) return;
+    if (!AnimInstance)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AnimInstance cast failed!"));
+        return;
+    }
 
+    UE_LOG(LogTemp, Warning, TEXT("Setting state variables!"));
     AnimInstance->bIsSuspicious = (CurrentState == EDetectionState::Suspicious);
     AnimInstance->bIsSearching = (CurrentState == EDetectionState::Searching);
     AnimInstance->bIsAlerted = (CurrentState == EDetectionState::Alert);
@@ -47,33 +56,33 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
     UE_LOG(LogTemp, Warning, TEXT("Perception updated!"));
+
     if (Stimulus.WasSuccessfullySensed())
     {
         LastHeardLocation = Stimulus.StimulusLocation;
         bIsInvestigating = true;
         MoveToLocation(LastHeardLocation, 50.f);
 
-        // Escalate state based on current state
         if (CurrentState == EDetectionState::Idle)
-        {
             SetDetectionState(EDetectionState::Suspicious);
-        }
         else if (CurrentState == EDetectionState::Suspicious)
-        {
             SetDetectionState(EDetectionState::Searching);
-        }
         else if (CurrentState == EDetectionState::Searching)
-        {
             SetDetectionState(EDetectionState::Alert);
-        }
 
-        UE_LOG(LogTemp, Warning, TEXT("Sound heard! Investigating."));
+        GetWorldTimerManager().SetTimer(
+            ResetTimerHandle,
+            this,
+            &ADetectionAIController::ResetToIdle,
+            5.f,
+            false
+        );
     }
-    else
-    {
-        // Sound lost, calm back down
-        SetDetectionState(EDetectionState::Idle);
-        bIsInvestigating = false;
-        UE_LOG(LogTemp, Warning, TEXT("Sound lost."));
-    }
+}
+
+void ADetectionAIController::ResetToIdle()
+{
+    bIsInvestigating = false;
+    SetDetectionState(EDetectionState::Idle);
+    UE_LOG(LogTemp, Warning, TEXT("Resetting to Idle."));
 }
