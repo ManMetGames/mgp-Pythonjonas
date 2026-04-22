@@ -1,5 +1,6 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
-
+#include "Perception/AISense_Hearing.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "MGP_2526Character.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
@@ -11,7 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "MGP_2526.h"
-#include "Perception/AISense_hearing.h"
+
 
 AMGP_2526Character::AMGP_2526Character()
 {
@@ -175,6 +176,7 @@ void AMGP_2526Character::Move(const FInputActionValue& Value)
 {
     FVector2D MovementVector = Value.Get<FVector2D>();
     DoMove(MovementVector.X, MovementVector.Y);
+    UE_LOG(LogTemp, Warning, TEXT("Move called!"));
 
     //I want to have varying loudness based on the players movement:
 
@@ -194,13 +196,13 @@ void AMGP_2526Character::Move(const FInputActionValue& Value)
     {
         Loudness = 0.5f; // default
     }
-
+    UE_LOG(LogTemp, Warning, TEXT("Reporting noise with loudness: %f"), Loudness);
     UAISense_Hearing::ReportNoiseEvent(
         GetWorld(),
         GetActorLocation(),
         Loudness,
         this,
-        0.f,
+        2000.0f,
         FName("Footstep")
     );
 }

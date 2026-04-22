@@ -22,7 +22,7 @@ ADetectionAIController::ADetectionAIController()
 void ADetectionAIController::BeginPlay()
 {
     Super::BeginPlay();
-
+    UE_LOG(LogTemp, Warning, TEXT("DetectionAIController BeginPlay called!"));
     PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
         this,
         &ADetectionAIController::OnPerceptionUpdated
@@ -46,6 +46,7 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+    UE_LOG(LogTemp, Warning, TEXT("Perception updated!"));
     if (Stimulus.WasSuccessfullySensed())
     {
         LastHeardLocation = Stimulus.StimulusLocation;

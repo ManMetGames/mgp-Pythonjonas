@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "CoreMinimal.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "MGP_2526Character.generated.h"
@@ -54,6 +55,7 @@ protected:
 public:
     /** Constructor */
     AMGP_2526Character();
+ 
 
 protected:
     /** Initialize input action bindings */
@@ -125,4 +127,6 @@ public:
 
     /** Returns FollowCamera subobject **/
     FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+    UPROPERTY(VisibleAnywhere, Category = "AI")
+    UAIPerceptionStimuliSourceComponent* StimuliSource;
 };
