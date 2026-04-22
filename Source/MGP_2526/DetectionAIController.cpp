@@ -1,4 +1,6 @@
 #include "DetectionAIController.h"
+#include "EnemyCharacter.h"
+#include "Animation/AnimInstance.h"
 
 ADetectionAIController::ADetectionAIController()
 {
@@ -26,6 +28,23 @@ void ADetectionAIController::BeginPlay()
     );
 }
 
+void ADetectionAIController::SetDetectionState(EDetectionState NewState)
+{
+    CurrentState = NewState;
+
+    // Get the enemy character and its anim instance
+    ACharacter* Character = Cast<ACharacter>(GetPawn());
+    if (!Character) return;
+
+    UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+    if (!AnimInstance) return;
+
+    // Update the animation blueprint variables
+    AnimInstance->SetVariableByLabel(TEXT("bIsSuspicious"), CurrentState == EDetectionState::Suspicious);
+    AnimInstance->SetVariableByLabel(TEXT("bIsSearching"), CurrentState == EDetectionState::Searching);
+    AnimInstance->SetVariableByLabel(TEXT("bIsAlerted"), CurrentState == EDetectionState::Alert);
+}
+
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
     if (Stimulus.WasSuccessfullySensed())
@@ -34,11 +53,27 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         bIsInvestigating = true;
         MoveToLocation(LastHeardLocation, 50.f);
 
-        UE_LOG(LogTemp, Warning, TEXT("Sound heard?! Im investigating."));
+        // Escalate state based on current state
+        if (CurrentState == EDetectionState::Idle)
+        {
+            SetDetectionState(EDetectionState::Suspicious);
+        }
+        else if (CurrentState == EDetectionState::Suspicious)
+        {
+            SetDetectionState(EDetectionState::Searching);
+        }
+        else if (CurrentState == EDetectionState::Searching)
+        {
+            SetDetectionState(EDetectionState::Alert);
+        }
+
+        UE_LOG(LogTemp, Warning, TEXT("Sound heard! Investigating."));
     }
     else
     {
+        // Sound lost, calm back down
+        SetDetectionState(EDetectionState::Idle);
         bIsInvestigating = false;
-        UE_LOG(LogTemp, Warning, TEXT("Sound lost... "));
+        UE_LOG(LogTemp, Warning, TEXT("Sound lost."));
     }
 }
