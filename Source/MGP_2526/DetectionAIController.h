@@ -18,6 +18,8 @@ enum class EDetectionState : uint8
     Alert
 };
 
+	
+
 
 UCLASS()
 class MGP_2526_API ADetectionAIController : public AAIController
@@ -45,7 +47,9 @@ private:
     FVector LastHeardLocation;
     bool bIsInvestigating = false;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Detection", meta = (AllowPrivateAccess = "true"))
     EDetectionState CurrentState = EDetectionState::Idle;
+
     FTimerHandle ResetTimerHandle;
 
     void ResetToIdle();

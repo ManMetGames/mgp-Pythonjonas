@@ -14,4 +14,27 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+
+    void Tick(float DeltaTime);
+
+public:
+
+    // Movement
+    UPROPERTY(BlueprintReadOnly, Category = "Animation")
+    float Speed;
+
+    // AI States
+    UPROPERTY(BlueprintReadOnly, Category = "AI")
+    bool bIsAlert;
+
+    UPROPERTY(BlueprintReadOnly, Category = "AI")
+    bool bIsSearching;
+
+    UPROPERTY(BlueprintReadOnly, Category = "AI")
+    bool bIsSuspicious;
+    UFUNCTION(BlueprintCallable)
+    void SetAlert(bool bAlert);
+
+    UFUNCTION(BlueprintCallable)
+    void SetSuspicious(bool bSuspicious);
 };
