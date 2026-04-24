@@ -11,14 +11,12 @@ AEnemyCharacter::AEnemyCharacter()
 
 void AEnemyCharacter::BeginPlay()
 {
+	CurrentState = EEnemyState::Idle;
 	Super::BeginPlay();
 	bIsAlert = false;
 	bIsSearching = false;
 	bIsSuspicious = false;
 }
-
-
-
 void AEnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

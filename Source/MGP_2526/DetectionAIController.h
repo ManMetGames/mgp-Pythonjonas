@@ -6,10 +6,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "DetectionAIController.generated.h"
 
-
-
 UENUM(BlueprintType)
-
 enum class EDetectionState : uint8
 {
     Idle,
@@ -17,9 +14,6 @@ enum class EDetectionState : uint8
     Searching,
     Alert
 };
-
-	
-
 
 UCLASS()
 class MGP_2526_API ADetectionAIController : public AAIController
@@ -29,6 +23,9 @@ class MGP_2526_API ADetectionAIController : public AAIController
 public:
     ADetectionAIController();
 
+    UPROPERTY(BlueprintReadOnly, Category = "Detection", meta = (AllowPrivateAccess = "true"))
+    EDetectionState CurrentState = EDetectionState::Idle;
+
 protected:
     virtual void BeginPlay() override;
 
@@ -36,6 +33,7 @@ protected:
     void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
     void SetDetectionState(EDetectionState NewState);
+    void ResetToIdle();
 
 private:
     UPROPERTY(VisibleAnywhere)
@@ -46,11 +44,5 @@ private:
 
     FVector LastHeardLocation;
     bool bIsInvestigating = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Detection", meta = (AllowPrivateAccess = "true"))
-    EDetectionState CurrentState = EDetectionState::Idle;
-
     FTimerHandle ResetTimerHandle;
-
-    void ResetToIdle();
 };

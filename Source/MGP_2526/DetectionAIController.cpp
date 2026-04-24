@@ -1,7 +1,7 @@
 #include "DetectionAIController.h"
-#include "EnemyCharacter.h"
-#include "Animation/AnimInstance.h"
 #include "EnemyAnimInstance.h"
+#include "GameFramework/Character.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 ADetectionAIController::ADetectionAIController()
 {
@@ -10,7 +10,7 @@ ADetectionAIController::ADetectionAIController()
 
     HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
     HearingConfig->HearingRange = 1000.f;
-    HearingConfig->SetMaxAge(5.f);
+    HearingConfig->SetMaxAge(10.f);
     HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
     HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
     HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
@@ -23,36 +23,39 @@ void ADetectionAIController::BeginPlay()
 {
     Super::BeginPlay();
     UE_LOG(LogTemp, Warning, TEXT("DetectionAIController BeginPlay called!"));
+
+    // Initialize blackboard
+    UBlackboardComponent* BB = GetBlackboardComponent();
+    if (BB)
+    {
+        BB->SetValueAsBool(FName("IsSuspicious"), false);
+        BB->SetValueAsBool(FName("IsSearching"), false);
+        BB->SetValueAsBool(FName("IsAlerted"), false);
+    }
+
     PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
         this,
         &ADetectionAIController::OnPerceptionUpdated
     );
 }
-
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
     CurrentState = NewState;
 
-    ACharacter* EnemyChar = Cast<ACharacter>(GetPawn());
-    if (!EnemyChar)
+    UBlackboardComponent* BB = GetBlackboardComponent();
+    if (!BB)
     {
-        UE_LOG(LogTemp, Warning, TEXT("EnemyChar cast failed!"));
+        UE_LOG(LogTemp, Warning, TEXT("No Blackboard!"));
         return;
     }
+    
 
-    UEnemyAnimInstance* AnimInstance = Cast<UEnemyAnimInstance>(EnemyChar->GetMesh()->GetAnimInstance());
-    if (!AnimInstance)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("AnimInstance cast failed!"));
-        return;
-    }
+    BB->SetValueAsBool(FName("IsSuspicious"), NewState == EDetectionState::Suspicious);
+    BB->SetValueAsBool(FName("IsSearching"), NewState == EDetectionState::Searching);
+    BB->SetValueAsBool(FName("IsAlerted"), NewState == EDetectionState::Alert);
 
-    UE_LOG(LogTemp, Warning, TEXT("Setting state variables!"));
-    AnimInstance->bIsSuspicious = (CurrentState == EDetectionState::Suspicious);
-    AnimInstance->bIsSearching = (CurrentState == EDetectionState::Searching);
-    AnimInstance->bIsAlerted = (CurrentState == EDetectionState::Alert);
+    UE_LOG(LogTemp, Warning, TEXT("State set via Blackboard!"));
 }
-
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
     UE_LOG(LogTemp, Warning, TEXT("Perception updated!"));
@@ -74,7 +77,7 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
             ResetTimerHandle,
             this,
             &ADetectionAIController::ResetToIdle,
-            5.f,
+            10.f,
             false
         );
     }
