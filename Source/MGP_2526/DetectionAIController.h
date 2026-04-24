@@ -4,6 +4,7 @@
 #include "AIController.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "DetectionAIController.generated.h"
 
 UENUM(BlueprintType)
@@ -15,10 +16,15 @@ enum class EDetectionState : uint8
     Alert
 };
 
+
 UCLASS()
 class MGP_2526_API ADetectionAIController : public AAIController
 {
     GENERATED_BODY()
+    UPROPERTY(EditAnywhere, Category = "AI")
+    UBehaviorTree* BehaviorTree;
+
+
 
 public:
     ADetectionAIController();

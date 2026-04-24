@@ -2,6 +2,7 @@
 #include "EnemyAnimInstance.h"
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
 
 ADetectionAIController::ADetectionAIController()
 {
@@ -22,7 +23,7 @@ ADetectionAIController::ADetectionAIController()
 void ADetectionAIController::BeginPlay()
 {
     Super::BeginPlay();
-    UE_LOG(LogTemp, Warning, TEXT("DetectionAIController BeginPlay called!"));
+  
 
     // Initialize blackboard
     UBlackboardComponent* BB = GetBlackboardComponent();
@@ -32,6 +33,16 @@ void ADetectionAIController::BeginPlay()
         BB->SetValueAsBool(FName("IsSearching"), false);
         BB->SetValueAsBool(FName("IsAlerted"), false);
     }
+    if (BehaviorTree)
+    {
+        RunBehaviorTree(BehaviorTree);
+        UE_LOG(LogTemp, Warning, TEXT("Behavior Tree started!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No Behavior Tree assigned!"));
+    }
+
 
     PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
         this,
