@@ -42,6 +42,7 @@ protected:
 
     void SetDetectionState(EDetectionState NewState);
     void ResetToIdle();
+    
 
 private:
     UPROPERTY(VisibleAnywhere)

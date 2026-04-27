@@ -90,7 +90,15 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
             &ADetectionAIController::ResetToIdle,
             10.f,
             false
-        );
+		);
+        
+
+            UBlackboardComponent* BB = GetBlackboardComponent();
+        if (BB)
+        {
+            BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
+        }
+ 
     }
 }
 
