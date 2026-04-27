@@ -31,6 +31,8 @@ public:
 
     UPROPERTY(BlueprintReadOnly, Category = "Detection", meta = (AllowPrivateAccess = "true"))
     EDetectionState CurrentState = EDetectionState::Idle;
+    UPROPERTY(BlueprintReadOnly, Category = "Detection", meta = (AllowPrivateAccess = "true"))
+    FVector LastHeardLocation;
 
 protected:
     virtual void BeginPlay() override;
@@ -48,7 +50,7 @@ private:
     UPROPERTY(VisibleAnywhere)
     UAISenseConfig_Hearing* HearingConfig;
 
-    FVector LastHeardLocation;
+    //FVector LastHeardLocation;
     bool bIsInvestigating = false;
     FTimerHandle ResetTimerHandle;
 };
