@@ -18,13 +18,16 @@ ADetectionAIController::ADetectionAIController()
 }
 
 void ADetectionAIController::BeginPlay()
+
 {
+    UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER BEGIN PLAY RUNNING"))
     Super::BeginPlay();
 
     if (BehaviorTree)
     {
         RunBehaviorTree(BehaviorTree);
 		UE_LOG(LogTemp, Warning, TEXT("Behavior Tree started successfully."));
+        SetDetectionState(EDetectionState::Suspicious);
     }
 
     PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &ADetectionAIController::OnPerceptionUpdated);
@@ -74,13 +77,21 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
     CurrentState = NewState;
+
+    UE_LOG(LogTemp, Warning, TEXT("SetDetectionState called: %d"), (int32)NewState);
+
     UBlackboardComponent* BB = GetBlackboardComponent();
-    if (BB)
+    if (!BB)
     {
-        BB->SetValueAsBool(FName("IsSuspicious"), CurrentState == EDetectionState::Suspicious);
-        BB->SetValueAsBool(FName("IsSearching"), CurrentState == EDetectionState::Searching);
-        BB->SetValueAsBool(FName("IsAlerted"), CurrentState == EDetectionState::Alert);
+        UE_LOG(LogTemp, Error, TEXT("BLACKBOARD IS NULL"));
+        return;
     }
+
+    BB->SetValueAsBool(FName("IsSuspicious"), CurrentState == EDetectionState::Suspicious);
+    BB->SetValueAsBool(FName("IsSearching"), CurrentState == EDetectionState::Searching);
+    BB->SetValueAsBool(FName("IsAlert"), CurrentState == EDetectionState::Alert);
+
+    UE_LOG(LogTemp, Warning, TEXT("Blackboard Updated"));
 }
 
 void ADetectionAIController::ResetToIdle()
