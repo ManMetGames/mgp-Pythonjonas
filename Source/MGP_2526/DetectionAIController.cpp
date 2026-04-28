@@ -24,6 +24,7 @@ void ADetectionAIController::BeginPlay()
     if (BehaviorTree)
     {
         RunBehaviorTree(BehaviorTree);
+		UE_LOG(LogTemp, Warning, TEXT("Behavior Tree started successfully."));
     }
 
     PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &ADetectionAIController::OnPerceptionUpdated);
@@ -36,7 +37,6 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         LastHeardLocation = Stimulus.StimulusLocation;
         float Distance = FVector::Dist(GetPawn()->GetActorLocation(), LastHeardLocation);
 
-        // Update Blackboard immediately
         UBlackboardComponent* BB = GetBlackboardComponent();
         if (BB)
         {
@@ -44,15 +44,14 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
             BB->SetValueAsFloat(FName("DetectionDistance"), Distance);
         }
 
-        // --- State Transition Logic ---
+   
         if (Distance < 300.f)
         {
-            // Close sound: Direct search
+   
             SetDetectionState(EDetectionState::Searching);
         }
         else
         {
-            // Far sound: Suspicious first, then Search if heard again
             if (CurrentState == EDetectionState::Idle)
             {
                 SetDetectionState(EDetectionState::Suspicious);
@@ -63,7 +62,7 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
             }
         }
 
-        // Restart the "Give Up" timer
+        
         GetWorldTimerManager().ClearTimer(ResetTimerHandle);
         GetWorldTimerManager().SetTimer(ResetTimerHandle, this, &ADetectionAIController::ResetToIdle, 10.f, false);
 
@@ -88,7 +87,7 @@ void ADetectionAIController::ResetToIdle()
 {
     SetDetectionState(EDetectionState::Idle);
 
-    // Optional: Return to start position logic would go here
+   
     StopMovement();
-    UE_LOG(LogTemp, Warning, TEXT("AI gave up and returned to Idle."));
+    UE_LOG(LogTemp, Warning, TEXT("AI gave up and is now Idle."));
 }
