@@ -5,6 +5,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "DetectionAIController.generated.h"
 
 UENUM(BlueprintType)
@@ -27,10 +28,10 @@ public:
     UPROPERTY(BlueprintReadOnly, Category = "Detection")
     EDetectionState CurrentState = EDetectionState::Idle;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Last Heard Location")
+    UPROPERTY(BlueprintReadOnly, Category = "Detection")
     FVector LastHeardLocation;
 
-    UPROPERTY(EditAnywhere, Category = "AI")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
     UBehaviorTree* BehaviorTree;
 
 protected:
@@ -38,9 +39,11 @@ protected:
 
     UFUNCTION()
     void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+    UFUNCTION(BlueprintCallable, Category = "Detection")
     void SetDetectionState(EDetectionState NewState);
+
     void ResetToIdle();
-    
 
 private:
     UPROPERTY(VisibleAnywhere)
@@ -49,7 +52,5 @@ private:
     UPROPERTY(VisibleAnywhere)
     UAISenseConfig_Hearing* HearingConfig;
 
-    //FVector LastHeardLocation;
-    bool bIsInvestigating = false;
     FTimerHandle ResetTimerHandle;
 };
