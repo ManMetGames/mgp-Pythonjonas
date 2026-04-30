@@ -18,7 +18,6 @@ ADetectionAIController::ADetectionAIController()
     PerceptionComp->ConfigureSense(*HearingConfig);
     PerceptionComp->SetDominantSense(HearingConfig->GetSenseImplementation());
 }
-
 void ADetectionAIController::BeginPlay()
 {
     Super::BeginPlay();
@@ -35,7 +34,25 @@ void ADetectionAIController::BeginPlay()
         UE_LOG(LogTemp, Error, TEXT("No Behavior Tree assigned!"));
     }
 
-    SetDetectionState(EDetectionState::Idle);
+    APawn* ControlledPawn = GetPawn();
+
+    if (ControlledPawn)
+    {
+        LastHeardLocation = ControlledPawn->GetActorLocation() + ControlledPawn->GetActorForwardVector() * 600.f;
+
+        UBlackboardComponent* BB = GetBlackboardComponent();
+        if (BB)
+        {
+            BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
+            UE_LOG(LogTemp, Warning, TEXT("Forced LastHeardLocation set."));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("BLACKBOARD IS NULL IN BEGINPLAY"));
+        }
+    }
+
+    SetDetectionState(EDetectionState::Searching);
 
     if (PerceptionComp)
     {
@@ -90,14 +107,14 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         SetDetectionState(EDetectionState::Searching);
     }
 
-    GetWorldTimerManager().ClearTimer(ResetTimerHandle);
-    GetWorldTimerManager().SetTimer(
-        ResetTimerHandle,
-        this,
-        &ADetectionAIController::ResetToIdle,
-        10.f,
-        false
-    );
+   // GetWorldTimerManager().ClearTimer(ResetTimerHandle);
+   // GetWorldTimerManager().SetTimer(
+     //   ResetTimerHandle,
+       // this,
+        //&ADetectionAIController::ResetToIdle,
+        //10.f,
+        //false
+    //);
 }
 
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
