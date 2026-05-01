@@ -9,7 +9,7 @@ ADetectionAIController::ADetectionAIController()
     SetPerceptionComponent(*PerceptionComp);
 
     HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
-    HearingConfig->HearingRange = 1000.f;
+    HearingConfig->HearingRange = 3000.f;
     HearingConfig->SetMaxAge(5.f);
     HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
     HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
@@ -34,25 +34,7 @@ void ADetectionAIController::BeginPlay()
         UE_LOG(LogTemp, Error, TEXT("No Behavior Tree assigned!"));
     }
 
-    APawn* ControlledPawn = GetPawn();
-
-    if (ControlledPawn)
-    {
-        LastHeardLocation = ControlledPawn->GetActorLocation() + ControlledPawn->GetActorForwardVector() * 600.f;
-
-        UBlackboardComponent* BB = GetBlackboardComponent();
-        if (BB)
-        {
-            BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
-            UE_LOG(LogTemp, Warning, TEXT("Forced LastHeardLocation set."));
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("BLACKBOARD IS NULL IN BEGINPLAY"));
-        }
-    }
-
-    SetDetectionState(EDetectionState::Searching);
+    SetDetectionState(EDetectionState::Idle);
 
     if (PerceptionComp)
     {
@@ -77,44 +59,53 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         return;
     }
 
+    // store the noise (please)
     LastHeardLocation = Stimulus.StimulusLocation;
 
+    // distance to noise
     const float Distance = FVector::Dist(
         ControlledPawn->GetActorLocation(),
         LastHeardLocation
     );
 
+    // Update Blackboards
     UBlackboardComponent* BB = GetBlackboardComponent();
     if (BB)
     {
         BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
         BB->SetValueAsFloat(FName("DetectionDistance"), Distance);
     }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("BLACKBOARD IS NULL in OnPerceptionUpdated"));
+        return;
+    }
 
     UE_LOG(LogTemp, Warning, TEXT("Noise heard at: %s"), *LastHeardLocation.ToString());
     UE_LOG(LogTemp, Warning, TEXT("Distance to noise: %f"), Distance);
 
-    if (Distance < 300.f)
+    // distance based again
+    if (Distance < 150.f)
+    {
+        SetDetectionState(EDetectionState::Alert);
+    }
+    else if (Distance < 300.f)
     {
         SetDetectionState(EDetectionState::Searching);
     }
-    else if (CurrentState == EDetectionState::Idle)
+    else
     {
         SetDetectionState(EDetectionState::Suspicious);
     }
-    else if (CurrentState == EDetectionState::Suspicious)
-    {
-        SetDetectionState(EDetectionState::Searching);
-    }
 
-   // GetWorldTimerManager().ClearTimer(ResetTimerHandle);
-   // GetWorldTimerManager().SetTimer(
-     //   ResetTimerHandle,
-       // this,
-        //&ADetectionAIController::ResetToIdle,
-        //10.f,
-        //false
-    //);
+   GetWorldTimerManager().ClearTimer(ResetTimerHandle);
+    GetWorldTimerManager().SetTimer(
+        ResetTimerHandle,
+        this,
+        &ADetectionAIController::ResetToIdle,
+        10.f,
+        false
+    );
 }
 
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
