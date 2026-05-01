@@ -66,6 +66,7 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
     const float Distance = FVector::Dist(
         ControlledPawn->GetActorLocation(),
         LastHeardLocation
+        BB->SetValueAsObject(FName("PlayerActor"), Actor);
     );
 
     UBlackboardComponent* BB = GetBlackboardComponent();
