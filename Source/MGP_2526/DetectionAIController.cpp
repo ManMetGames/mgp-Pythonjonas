@@ -66,7 +66,7 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
     const float Distance = FVector::Dist(
         ControlledPawn->GetActorLocation(),
         LastHeardLocation
-        BB->SetValueAsObject(FName("PlayerActor"), Actor);
+
     );
 
     UBlackboardComponent* BB = GetBlackboardComponent();
@@ -109,12 +109,12 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
-    if (CurrentState == NewState)
-    {
-        return;
-    }
-
     CurrentState = NewState;
+
+    if (NewState == EDetectionState::Suspicious)
+    {
+        StopMovement();
+    }
 
     UE_LOG(LogTemp, Warning, TEXT("SetDetectionState called: %d"), (int32)NewState);
 
@@ -134,8 +134,8 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 
 void ADetectionAIController::ResetToIdle()
 {
-    SetDetectionState(EDetectionState::Idle);
+	SetDetectionState(EDetectionState::Idle);
     StopMovement();
 
-    UE_LOG(LogTemp, Warning, TEXT("AI gave up and is now Idle."));
+    UE_LOG(LogTemp, Warning, TEXT("AI gave up and is now on Patrol."));
 }
