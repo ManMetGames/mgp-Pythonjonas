@@ -196,7 +196,7 @@ void AMGP_2526Character::Move(const FInputActionValue& Value)
     {
         Loudness = 0.5f; // default
     }
-    UE_LOG(LogTemp, Warning, TEXT("Reporting noise with loudness: %f"), Loudness);
+    //UE_LOG(LogTemp, Warning, TEXT("Reporting noise with loudness: %f"), Loudness);
     UAISense_Hearing::ReportNoiseEvent(
         GetWorld(),
         GetActorLocation(),

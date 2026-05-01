@@ -3,7 +3,7 @@
 
 AEnemyCharacter::AEnemyCharacter()
 {
-    // Tell this character to use our custom AI controller (yay)
+    // Tell this character to use the custom AI controller (yay)
     AIControllerClass = ADetectionAIController::StaticClass();
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	PrimaryActorTick.bCanEverTick = true; //for speeds

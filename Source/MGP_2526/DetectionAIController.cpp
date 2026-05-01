@@ -17,6 +17,8 @@ ADetectionAIController::ADetectionAIController()
 
     PerceptionComp->ConfigureSense(*HearingConfig);
     PerceptionComp->SetDominantSense(HearingConfig->GetSenseImplementation());
+
+
 }
 void ADetectionAIController::BeginPlay()
 {
@@ -59,57 +61,58 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         return;
     }
 
-    // store the noise (please)
     LastHeardLocation = Stimulus.StimulusLocation;
 
-    // distance to noise
     const float Distance = FVector::Dist(
         ControlledPawn->GetActorLocation(),
         LastHeardLocation
     );
 
-    // Update Blackboards
     UBlackboardComponent* BB = GetBlackboardComponent();
     if (BB)
     {
         BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
         BB->SetValueAsFloat(FName("DetectionDistance"), Distance);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("BLACKBOARD IS NULL in OnPerceptionUpdated"));
-        return;
+        BB->SetValueAsObject(FName("PlayerActor"), Actor);
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Noise heard at: %s"), *LastHeardLocation.ToString());
     UE_LOG(LogTemp, Warning, TEXT("Distance to noise: %f"), Distance);
 
-    // distance based again
-    if (Distance < 150.f)
+    // Detection distances (update if i need to)
+    const float AlertDistance = 600.f;
+    const float SearchingDistance = 1400.f;
+    const float SuspiciousDistance = 2500.f;
+
+    if (Distance <= AlertDistance)
     {
         SetDetectionState(EDetectionState::Alert);
     }
-    else if (Distance < 300.f)
+    else if (Distance <= SearchingDistance)
     {
         SetDetectionState(EDetectionState::Searching);
     }
-    else
+    else if (Distance <= SuspiciousDistance)
     {
         SetDetectionState(EDetectionState::Suspicious);
     }
 
-   GetWorldTimerManager().ClearTimer(ResetTimerHandle);
+    GetWorldTimerManager().ClearTimer(ResetTimerHandle);
     GetWorldTimerManager().SetTimer(
         ResetTimerHandle,
         this,
         &ADetectionAIController::ResetToIdle,
-        10.f,
+        8.f,
         false
     );
 }
 
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
+    if (CurrentState == NewState)
+    {
+        return;
+    }
+
     CurrentState = NewState;
 
     UE_LOG(LogTemp, Warning, TEXT("SetDetectionState called: %d"), (int32)NewState);
