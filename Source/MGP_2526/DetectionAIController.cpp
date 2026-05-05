@@ -38,8 +38,7 @@ ADetectionAIController::ADetectionAIController()
     PerceptionComp->ConfigureSense(*SightConfig);
 	UE_LOG(LogTemp, Warning, TEXT("Sight and Hearing senses configured."));
 
-    UPROPERTY(VisibleAnywhere)
-	UAISenseConfig_Sight* SightConfig;
+
 
     
     PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
