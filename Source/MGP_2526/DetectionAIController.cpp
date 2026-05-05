@@ -4,6 +4,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Sight.h"
+#include "Perception/AISenseConfig_Sight.h"
 #include "GameFramework/Pawn.h"
 
 ADetectionAIController::ADetectionAIController()
@@ -24,16 +25,21 @@ ADetectionAIController::ADetectionAIController()
 
     // I see
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    SightConfig->SightRadius = 2000.f;
-    SightConfig->LoseSightRadius = 2500.f;
-    SightConfig->PeripheralVisionAngleDegrees = 70.f;
+    SightConfig->SightRadius = 5000.f;
+    SightConfig->LoseSightRadius = 5500.f;
+    SightConfig->PeripheralVisionAngleDegrees = 180.f;
     SightConfig->SetMaxAge(1.f);
 
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+    SightConfig->PeripheralVisionAngleDegrees = 180.f;
 
     PerceptionComp->ConfigureSense(*SightConfig);
+	UE_LOG(LogTemp, Warning, TEXT("Sight and Hearing senses configured."));
+
+    UPROPERTY(VisibleAnywhere)
+	UAISenseConfig_Sight* SightConfig;
 
     
     PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -85,9 +91,17 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         return;
     }
 
+    UE_LOG(LogTemp, Warning, TEXT("Perception fired. Type: %d"), Stimulus.Type.Index);
+    UE_LOG(LogTemp, Warning, TEXT("Sight ID: %d"), UAISense::GetSenseID<UAISense_Sight>().Index);
+    UE_LOG(LogTemp, Warning, TEXT("Hearing ID: %d"), UAISense::GetSenseID<UAISense_Hearing>().Index);
+
+    
     // I SEE
+    
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
+        UE_LOG(LogTemp, Warning, TEXT("SIGHT fired"));
+
         BB->SetValueAsObject(FName("PlayerActor"), Actor);
 
         SetDetectionState(EDetectionState::Alert);
@@ -105,11 +119,13 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         return;
     }
 
-   
+    
     // I HEAR
-  
+   
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
     {
+        UE_LOG(LogTemp, Warning, TEXT("HEARING fired"));
+
         APawn* ControlledPawn = GetPawn();
         if (!ControlledPawn)
         {
@@ -134,12 +150,10 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         UE_LOG(LogTemp, Warning, TEXT("Distance to noise: %f"), Distance);
         UE_LOG(LogTemp, Warning, TEXT("Noise Strength: %f"), NoiseStrength);
 
-        // Distance (update if i want to)
         const float AlertDistance = 700.f;
         const float SearchingDistance = 1600.f;
         const float SuspiciousDistance = 3000.f;
 
-		// Noise (update if i want to)
         const float AlertNoiseRequired = 0.8f;
         const float SearchingNoiseRequired = 0.4f;
         const float SuspiciousNoiseRequired = 0.1f;
@@ -165,9 +179,12 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
             8.f,
             false
         );
-    }
-}
 
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Unknown perception sense fired."));
+}
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
     if (CurrentState == NewState)
