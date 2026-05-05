@@ -1,25 +1,44 @@
-#pragma once
 #include "DetectionAIController.h"
+
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "Perception/AISense_Hearing.h"
+#include "Perception/AISense_Sight.h"
+#include "GameFramework/Pawn.h"
 
 ADetectionAIController::ADetectionAIController()
 {
     PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
     SetPerceptionComponent(*PerceptionComp);
 
+    // Im hearing
     HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
     HearingConfig->HearingRange = 3000.f;
     HearingConfig->SetMaxAge(5.f);
+
     HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
     HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
     HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
 
     PerceptionComp->ConfigureSense(*HearingConfig);
-    PerceptionComp->SetDominantSense(HearingConfig->GetSenseImplementation());
 
+    // I see
+    SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+    SightConfig->SightRadius = 2000.f;
+    SightConfig->LoseSightRadius = 2500.f;
+    SightConfig->PeripheralVisionAngleDegrees = 70.f;
+    SightConfig->SetMaxAge(1.f);
 
+    SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+    SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+    SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+    PerceptionComp->ConfigureSense(*SightConfig);
+
+    
+    PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
 }
+
 void ADetectionAIController::BeginPlay()
 {
     Super::BeginPlay();
@@ -49,72 +68,114 @@ void ADetectionAIController::BeginPlay()
 
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+    if (!Actor)
+    {
+        return;
+    }
+
     if (!Stimulus.WasSuccessfullySensed())
     {
         return;
     }
 
-    APawn* ControlledPawn = GetPawn();
-    if (!ControlledPawn)
+    UBlackboardComponent* BB = GetBlackboardComponent();
+    if (!BB)
     {
-        UE_LOG(LogTemp, Error, TEXT("No controlled pawn!"));
+        UE_LOG(LogTemp, Error, TEXT("BLACKBOARD IS NULL in OnPerceptionUpdated"));
         return;
     }
 
-    LastHeardLocation = Stimulus.StimulusLocation;
-
-    const float Distance = FVector::Dist(
-        ControlledPawn->GetActorLocation(),
-        LastHeardLocation
-
-    );
-
-    UBlackboardComponent* BB = GetBlackboardComponent();
-    if (BB)
+    // I SEE
+    if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
+        BB->SetValueAsObject(FName("PlayerActor"), Actor);
+
+        SetDetectionState(EDetectionState::Alert);
+
+        GetWorldTimerManager().ClearTimer(ResetTimerHandle);
+        GetWorldTimerManager().SetTimer(
+            ResetTimerHandle,
+            this,
+            &ADetectionAIController::ResetToIdle,
+            5.f,
+            false
+        );
+
+        UE_LOG(LogTemp, Warning, TEXT("Player seen! Alert."));
+        return;
+    }
+
+   
+    // I HEAR
+  
+    if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
+    {
+        APawn* ControlledPawn = GetPawn();
+        if (!ControlledPawn)
+        {
+            UE_LOG(LogTemp, Error, TEXT("No controlled pawn!"));
+            return;
+        }
+
+        LastHeardLocation = Stimulus.StimulusLocation;
+
+        const float Distance = FVector::Dist(
+            ControlledPawn->GetActorLocation(),
+            LastHeardLocation
+        );
+
+        const float NoiseStrength = Stimulus.Strength;
+
         BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
         BB->SetValueAsFloat(FName("DetectionDistance"), Distance);
         BB->SetValueAsObject(FName("PlayerActor"), Actor);
-    }
 
-    UE_LOG(LogTemp, Warning, TEXT("Distance to noise: %f"), Distance);
+        UE_LOG(LogTemp, Warning, TEXT("Noise heard at: %s"), *LastHeardLocation.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("Distance to noise: %f"), Distance);
+        UE_LOG(LogTemp, Warning, TEXT("Noise Strength: %f"), NoiseStrength);
 
-    // Detection distances (update if i need to)
-    const float AlertDistance = 600.f;
-    const float SearchingDistance = 1400.f;
-    const float SuspiciousDistance = 2500.f;
+        // Distance (update if i want to)
+        const float AlertDistance = 700.f;
+        const float SearchingDistance = 1600.f;
+        const float SuspiciousDistance = 3000.f;
 
-    if (Distance <= AlertDistance)
-    {
-        SetDetectionState(EDetectionState::Alert);
-    }
-    else if (Distance <= SearchingDistance)
-    {
-        SetDetectionState(EDetectionState::Searching);
-    }
-    else if (Distance <= SuspiciousDistance)
-    {
-        SetDetectionState(EDetectionState::Suspicious);
-    }
+		// Noise (update if i want to)
+        const float AlertNoiseRequired = 0.8f;
+        const float SearchingNoiseRequired = 0.4f;
+        const float SuspiciousNoiseRequired = 0.1f;
 
-    GetWorldTimerManager().ClearTimer(ResetTimerHandle);
-    GetWorldTimerManager().SetTimer(
-        ResetTimerHandle,
-        this,
-        &ADetectionAIController::ResetToIdle,
-        8.f,
-        false
-    );
+        if (Distance <= AlertDistance && NoiseStrength >= AlertNoiseRequired)
+        {
+            SetDetectionState(EDetectionState::Alert);
+        }
+        else if (Distance <= SearchingDistance && NoiseStrength >= SearchingNoiseRequired)
+        {
+            SetDetectionState(EDetectionState::Searching);
+        }
+        else if (Distance <= SuspiciousDistance && NoiseStrength >= SuspiciousNoiseRequired)
+        {
+            SetDetectionState(EDetectionState::Suspicious);
+        }
+
+        GetWorldTimerManager().ClearTimer(ResetTimerHandle);
+        GetWorldTimerManager().SetTimer(
+            ResetTimerHandle,
+            this,
+            &ADetectionAIController::ResetToIdle,
+            8.f,
+            false
+        );
+    }
 }
 
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
-    CurrentState = NewState;
-
-    if (NewState == EDetectionState::Suspicious)
+    if (CurrentState == NewState)
     {
-        StopMovement();
+        return;
     }
+
+    CurrentState = NewState;
 
     UE_LOG(LogTemp, Warning, TEXT("SetDetectionState called: %d"), (int32)NewState);
 
@@ -129,12 +190,17 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
     BB->SetValueAsBool(FName("IsSearching"), NewState == EDetectionState::Searching);
     BB->SetValueAsBool(FName("IsAlert"), NewState == EDetectionState::Alert);
 
+    if (NewState == EDetectionState::Suspicious)
+    {
+        StopMovement();
+    }
+
     UE_LOG(LogTemp, Warning, TEXT("Blackboard Updated"));
 }
 
 void ADetectionAIController::ResetToIdle()
 {
-	SetDetectionState(EDetectionState::Idle);
+    SetDetectionState(EDetectionState::Idle);
     StopMovement();
 
     UE_LOG(LogTemp, Warning, TEXT("AI gave up and is now on Patrol."));

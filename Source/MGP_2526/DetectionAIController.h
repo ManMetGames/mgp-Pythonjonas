@@ -5,6 +5,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AISenseConfig_Sight.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "DetectionAIController.generated.h"
 
@@ -31,7 +32,7 @@ public:
     UPROPERTY(BlueprintReadOnly, Category = "Detection")
     FVector LastHeardLocation;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+    UPROPERTY(EditAnywhere, Category = "AI")
     UBehaviorTree* BehaviorTree;
 
 protected:
@@ -40,9 +41,7 @@ protected:
     UFUNCTION()
     void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-    UFUNCTION(BlueprintCallable, Category = "Detection")
     void SetDetectionState(EDetectionState NewState);
-
     void ResetToIdle();
 
 private:
@@ -51,6 +50,9 @@ private:
 
     UPROPERTY(VisibleAnywhere)
     UAISenseConfig_Hearing* HearingConfig;
+
+    UPROPERTY(VisibleAnywhere)
+    UAISenseConfig_Sight* SightConfig;
 
     FTimerHandle ResetTimerHandle;
 };
