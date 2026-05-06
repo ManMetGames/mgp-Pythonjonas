@@ -2,9 +2,9 @@
 
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "Perception/AISense.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Sight.h"
-#include "Perception/AISenseConfig_Sight.h"
 #include "GameFramework/Pawn.h"
 
 ADetectionAIController::ADetectionAIController()
@@ -12,7 +12,7 @@ ADetectionAIController::ADetectionAIController()
     PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
     SetPerceptionComponent(*PerceptionComp);
 
-    // Im hearing
+    // i am hearing
     HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
     HearingConfig->HearingRange = 3000.f;
     HearingConfig->SetMaxAge(5.f);
@@ -23,7 +23,7 @@ ADetectionAIController::ADetectionAIController()
 
     PerceptionComp->ConfigureSense(*HearingConfig);
 
-    // I see
+    // i am seeing
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
     SightConfig->SightRadius = 5000.f;
     SightConfig->LoseSightRadius = 5500.f;
@@ -33,15 +33,16 @@ ADetectionAIController::ADetectionAIController()
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-    SightConfig->PeripheralVisionAngleDegrees = 180.f;
 
     PerceptionComp->ConfigureSense(*SightConfig);
-	UE_LOG(LogTemp, Warning, TEXT("Sight and Hearing senses configured."));
-
-
 
     
     PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
+
+    
+    PerceptionComp->RequestStimuliListenerUpdate();
+
+    UE_LOG(LogTemp, Warning, TEXT("Sight and Hearing senses configured."));
 }
 
 void ADetectionAIController::BeginPlay()
@@ -49,6 +50,13 @@ void ADetectionAIController::BeginPlay()
     Super::BeginPlay();
 
     UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER BEGIN PLAY RUNNING"));
+}
+
+void ADetectionAIController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+
+    UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER POSSESSED PAWN"));
 
     if (BehaviorTree)
     {
@@ -60,15 +68,28 @@ void ADetectionAIController::BeginPlay()
         UE_LOG(LogTemp, Error, TEXT("No Behavior Tree assigned!"));
     }
 
-    SetDetectionState(EDetectionState::Idle);
-
     if (PerceptionComp)
     {
+        PerceptionComp->OnTargetPerceptionUpdated.RemoveDynamic(
+            this,
+            &ADetectionAIController::OnPerceptionUpdated
+        );
+
         PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
             this,
             &ADetectionAIController::OnPerceptionUpdated
         );
+
+        PerceptionComp->RequestStimuliListenerUpdate();
+
+        UE_LOG(LogTemp, Warning, TEXT("Perception delegate bound."));
     }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("PerceptionComp is null."));
+    }
+
+    SetDetectionState(EDetectionState::Idle);
 }
 
 void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -94,9 +115,9 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
     UE_LOG(LogTemp, Warning, TEXT("Sight ID: %d"), UAISense::GetSenseID<UAISense_Sight>().Index);
     UE_LOG(LogTemp, Warning, TEXT("Hearing ID: %d"), UAISense::GetSenseID<UAISense_Hearing>().Index);
 
-    
+ 
     // I SEE
-    
+
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
         UE_LOG(LogTemp, Warning, TEXT("SIGHT fired"));
@@ -118,9 +139,8 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         return;
     }
 
-    
     // I HEAR
-   
+
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
     {
         UE_LOG(LogTemp, Warning, TEXT("HEARING fired"));
@@ -184,16 +204,17 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
 
     UE_LOG(LogTemp, Warning, TEXT("Unknown perception sense fired."));
 }
+
 void ADetectionAIController::SetDetectionState(EDetectionState NewState)
 {
-    if (CurrentState == NewState)
-    {
-        return;
-    }
+    const bool bSameState = CurrentState == NewState;
 
     CurrentState = NewState;
 
-    UE_LOG(LogTemp, Warning, TEXT("SetDetectionState called: %d"), (int32)NewState);
+    if (!bSameState)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SetDetectionState called: %d"), (int32)NewState);
+    }
 
     UBlackboardComponent* BB = GetBlackboardComponent();
     if (!BB)
@@ -211,7 +232,10 @@ void ADetectionAIController::SetDetectionState(EDetectionState NewState)
         StopMovement();
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Blackboard Updated"));
+    if (!bSameState)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Blackboard Updated"));
+    }
 }
 
 void ADetectionAIController::ResetToIdle()
