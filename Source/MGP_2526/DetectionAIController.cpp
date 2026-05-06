@@ -27,10 +27,11 @@ ADetectionAIController::ADetectionAIController()
 
     // i am seeing
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    SightConfig->SightRadius = 5000.f;
-    SightConfig->LoseSightRadius = 5500.f;
-    SightConfig->PeripheralVisionAngleDegrees = 180.f;
+    SightConfig->SightRadius = 10000.0f;
+    SightConfig->LoseSightRadius = 11000.f;
+    SightConfig->PeripheralVisionAngleDegrees = 360.f;
     SightConfig->SetMaxAge(1.f);
+    SightConfig->AutoSuccessRangeFromLastSeenLocation = 10000.f;
 
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
