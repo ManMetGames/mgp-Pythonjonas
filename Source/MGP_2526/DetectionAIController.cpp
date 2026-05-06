@@ -5,6 +5,8 @@
 #include "Perception/AISense.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Sight.h"
+#include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AISenseConfig_Sight.h"
 #include "GameFramework/Pawn.h"
 
 ADetectionAIController::ADetectionAIController()
