@@ -53,6 +53,19 @@ void ADetectionAIController::BeginPlay()
     Super::BeginPlay();
 
     UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER BEGIN PLAY RUNNING"));
+
+    if (PerceptionComp)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PerceptionComp exists in BeginPlay"));
+        UE_LOG(LogTemp, Warning, TEXT("Sight ID at BeginPlay: %d"), UAISense::GetSenseID<UAISense_Sight>().Index);
+        UE_LOG(LogTemp, Warning, TEXT("Hearing ID at BeginPlay: %d"), UAISense::GetSenseID<UAISense_Hearing>().Index);
+
+        PerceptionComp->RequestStimuliListenerUpdate();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("PerceptionComp is NULL in BeginPlay"));
+    }
 }
 
 void ADetectionAIController::OnPossess(APawn* InPawn)

@@ -197,15 +197,17 @@ void AMGP_2526Character::Move(const FInputActionValue& Value)
         Loudness = 0.5f; // default
     }
     //UE_LOG(LogTemp, Warning, TEXT("Reporting noise with loudness: %f"), Loudness);
-    UAISense_Hearing::ReportNoiseEvent(
-        GetWorld(),
-        GetActorLocation(),
-        Loudness,
-        this,
-        2000.0f,
-        FName("Footstep")
-    );
+   // UAISense_Hearing::ReportNoiseEvent(
+    //    GetWorld(),
+     //   GetActorLocation(),
+      //  Loudness,
+       // this,
+      //  2000.0f,
+       // FName("Footstep")
+    //);
 }
+
+
 
 void AMGP_2526Character::Look(const FInputActionValue& Value)
 {
