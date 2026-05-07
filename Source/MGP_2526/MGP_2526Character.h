@@ -33,7 +33,7 @@ class AMGP_2526Character : public ACharacter
     UCameraComponent* FollowCamera;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
-    UAIPerceptionStimuliSourceComponent* AIPerceptionStimuliSource;
+	UAIPerceptionStimuliSourceComponent* SightStimuliSource;
 protected:
     /** Jump Input Action */
     UPROPERTY(EditAnywhere, Category = "Input")

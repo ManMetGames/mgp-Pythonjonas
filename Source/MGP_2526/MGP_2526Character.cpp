@@ -45,9 +45,9 @@ AMGP_2526Character::AMGP_2526Character()
     FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
     FollowCamera->bUsePawnControlRotation = false;
 
-    AIPerceptionStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("AIPerceptionStimuliSource"));
-    AIPerceptionStimuliSource->bAutoRegister = true;
-    AIPerceptionStimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+    SightStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("AIPerceptionStimuliSource"));
+    SightStimuliSource->bAutoRegister = true;
+    SightStimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
 }
 
 // Tick: stamina drain/regen

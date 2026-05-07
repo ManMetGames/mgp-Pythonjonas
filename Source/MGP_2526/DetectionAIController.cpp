@@ -104,7 +104,7 @@ void ADetectionAIController::OnPossess(APawn* InPawn)
             FocusTestTimerHandle,
             this,
             &ADetectionAIController::FocusPlayerForSightTest,
-            1.0f,
+            0.25f,
             false
         );
       
@@ -307,13 +307,36 @@ void ADetectionAIController::FocusPlayerForSightTest()
         if (bHit)
         {
             UE_LOG(LogTemp, Warning, TEXT("Sight trace hit: %s"), *GetNameSafe(Hit.GetActor()));
+
+            if (Hit.GetActor() == PlayerPawn)
+            {
+                UBlackboardComponent* BB = GetBlackboardComponent();
+
+                if (BB)
+                {
+                    BB->SetValueAsObject(FName("PlayerActor"), PlayerPawn);
+                }
+
+                SetDetectionState(EDetectionState::Alert);
+
+                GetWorldTimerManager().ClearTimer(ResetTimerHandle);
+                GetWorldTimerManager().SetTimer(
+                    ResetTimerHandle,
+                    this,
+                    &ADetectionAIController::ResetToIdle,
+                    5.f,
+                    false
+                );
+
+                UE_LOG(LogTemp, Warning, TEXT("Manual sight saw player! Alert."));
+            }
         }
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("Sight trace hit nothing"));
         }
-    }
-    else
+}
+        else
     {
         UE_LOG(LogTemp, Error, TEXT("Still no player pawn found for focus test"));
     }
