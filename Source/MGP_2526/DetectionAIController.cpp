@@ -8,6 +8,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
 
 ADetectionAIController::ADetectionAIController()
 {
@@ -99,7 +100,16 @@ void ADetectionAIController::OnPossess(APawn* InPawn)
         PerceptionComp->RequestStimuliListenerUpdate();
 
         UE_LOG(LogTemp, Warning, TEXT("Perception delegate bound."));
+        GetWorldTimerManager().SetTimer(
+            FocusTestTimerHandle,
+            this,
+            &ADetectionAIController::FocusPlayerForSightTest,
+            1.0f,
+            false
+        );
+      
     }
+
     else
     {
         UE_LOG(LogTemp, Error, TEXT("PerceptionComp is null."));
@@ -260,4 +270,51 @@ void ADetectionAIController::ResetToIdle()
     StopMovement();
 
     UE_LOG(LogTemp, Warning, TEXT("AI gave up and is now on Patrol."));
+}
+
+
+void ADetectionAIController::FocusPlayerForSightTest()
+{
+    APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+    if (PlayerPawn)
+    {
+        SetFocus(PlayerPawn);
+        UE_LOG(LogTemp, Warning, TEXT("AI focusing player: %s"), *PlayerPawn->GetName());
+
+        APawn* ControlledPawn = GetPawn();
+        if (!ControlledPawn)
+        {
+            UE_LOG(LogTemp, Error, TEXT("No controlled pawn for sight trace"));
+            return;
+        }
+
+        FVector Start = ControlledPawn->GetActorLocation() + FVector(0.f, 0.f, 80.f);
+        FVector End = PlayerPawn->GetActorLocation() + FVector(0.f, 0.f, 80.f);
+
+        FHitResult Hit;
+        FCollisionQueryParams Params;
+        Params.AddIgnoredActor(ControlledPawn);
+
+        bool bHit = GetWorld()->LineTraceSingleByChannel(
+            Hit,
+            Start,
+            End,
+            ECC_Visibility,
+            Params
+        );
+
+        if (bHit)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Sight trace hit: %s"), *GetNameSafe(Hit.GetActor()));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Sight trace hit nothing"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Still no player pawn found for focus test"));
+    }
 }

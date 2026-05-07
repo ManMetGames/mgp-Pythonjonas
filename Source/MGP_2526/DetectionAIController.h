@@ -44,6 +44,8 @@ protected:
 
     void SetDetectionState(EDetectionState NewState);
     void ResetToIdle();
+    void FocusPlayerForSightTest();
+    FTimerHandle FocusTestTimerHandle;
 
 private:
     UPROPERTY(VisibleAnywhere)
