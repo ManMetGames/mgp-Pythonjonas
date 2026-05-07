@@ -190,6 +190,7 @@ void ADetectionAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stim
         BB->SetValueAsVector(FName("LastHeardLocation"), LastHeardLocation);
         BB->SetValueAsFloat(FName("DetectionDistance"), Distance);
         BB->SetValueAsObject(FName("PlayerActor"), Actor);
+        SetDetectionState(EDetectionState::Searching);
 
         UE_LOG(LogTemp, Warning, TEXT("Noise heard at: %s"), *LastHeardLocation.ToString());
         UE_LOG(LogTemp, Warning, TEXT("Distance to noise: %f"), Distance);
