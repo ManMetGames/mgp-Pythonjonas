@@ -186,30 +186,34 @@ void AMGP_2526Character::Move(const FInputActionValue& Value)
     //I want to have varying loudness based on the players movement:
 
     float Loudness = 0.0f;
+	float NoiseRange = 0.0f;
     
     if (bIsCrouching)
     {
         Loudness = 0.1f; //mouse
+		NoiseRange = 200.0f;
     }
 
     else if (bIsSprinting)
     {
         Loudness = 1.0f; //loud (stop)
+		NoiseRange = 1200.0f;
     }
 
     else
     {
         Loudness = 0.5f; // default
+		NoiseRange = 600.0f;
     }
-    //UE_LOG(LogTemp, Warning, TEXT("Reporting noise with loudness: %f"), Loudness);
-   // UAISense_Hearing::ReportNoiseEvent(
-    //    GetWorld(),
-     //   GetActorLocation(),
-      //  Loudness,
-       // this,
-      //  2000.0f,
-       // FName("Footstep")
-    //);
+    UE_LOG(LogTemp, Warning, TEXT("Reporting noise with loudness: %f"), Loudness);
+   UAISense_Hearing::ReportNoiseEvent(
+        GetWorld(),
+        GetActorLocation(),
+        Loudness,
+        this,
+       1200.0f,
+        FName("Footstep")
+    );
 }
 
 
