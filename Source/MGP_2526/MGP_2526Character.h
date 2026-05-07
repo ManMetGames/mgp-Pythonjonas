@@ -1,11 +1,14 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "InputActionValue.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+
 #include "MGP_2526Character.generated.h"
+
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -21,76 +24,112 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 UCLASS(abstract)
 class AMGP_2526Character : public ACharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+    USpringArmComponent* CameraBoom;
 
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
-	
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+    UCameraComponent* FollowCamera;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	UAIPerceptionStimuliSourceComponent* SightStimuliSource;
 protected:
+    /** Jump Input Action */
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* JumpAction;
 
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* JumpAction;
+    /** Move Input Action */
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* MoveAction;
 
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* MoveAction;
+    /** Look Input Action */
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* LookAction;
 
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* LookAction;
+    /** Mouse Look Input Action */
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* MouseLookAction;
 
-	/** Mouse Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* MouseLookAction;
+    //Crouch test
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* CrouchAction;
+
 
 public:
-
-	/** Constructor */
-	AMGP_2526Character();	
-
-protected:
-
-	/** Initialize input action bindings */
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    /** Constructor */
+    AMGP_2526Character();
+ 
 
 protected:
+    /** Initialize input action bindings */
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
+    virtual void Tick(float DeltaTime) override;
 
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
+protected:
+    /** Called for movement input */
+    void Move(const FInputActionValue& Value);
+
+    /** Called for looking input */
+    void Look(const FInputActionValue& Value);
+
+    /** Sprint input handlers */
+    void SprintStart();
+    void SprintEnd();
+
+    //Crouch input handler
+   void CrouchStart();
+    void CrouchEnd();
+ 
+private:
+    bool bIsSprinting = false;
+    bool bIsCrouching = false;
+  //  float TargetCameraZ;
+    
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void DoMove(float Right, float Forward);
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void DoLook(float Yaw, float Pitch);
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void DoJumpStart();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void DoJumpEnd();
 
 public:
+    /** Sprint Input Action — assign in your Input Mapping Context */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    UInputAction* SprintAction;
 
-	/** Handles move inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoMove(float Right, float Forward);
+    // Movement speeds
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+    float WalkSpeed = 300.0f;
 
-	/** Handles look inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoLook(float Yaw, float Pitch);
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+    float SprintSpeed = 600.0f;
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpStart();
+    // Stamina
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+    float MaxStamina = 100.0f;
 
-	/** Handles jump pressed inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpEnd();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    float Stamina = 100.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+    float StaminaDrain = 20.0f;   // per second while sprinting
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+    float StaminaRegen = 10.0f;   // per second while not sprinting
 
 public:
+    /** Returns CameraBoom subobject **/
+    FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+    /** Returns FollowCamera subobject **/
+    FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+ 
 };
-
