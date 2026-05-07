@@ -1,10 +1,14 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 #pragma once
+
 #include "CoreMinimal.h"
-#include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "InputActionValue.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+
 #include "MGP_2526Character.generated.h"
+
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -22,14 +26,14 @@ class AMGP_2526Character : public ACharacter
 {
     GENERATED_BODY()
 
-    /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
     USpringArmComponent* CameraBoom;
 
-    /** Follow camera */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
     UCameraComponent* FollowCamera;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+    UAIPerceptionStimuliSourceComponent* AIPerceptionStimuliSource;
 protected:
     /** Jump Input Action */
     UPROPERTY(EditAnywhere, Category = "Input")
@@ -127,6 +131,5 @@ public:
 
     /** Returns FollowCamera subobject **/
     FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-    UPROPERTY(VisibleAnywhere, Category = "AI")
-    UAIPerceptionStimuliSourceComponent* StimuliSource;
+ 
 };

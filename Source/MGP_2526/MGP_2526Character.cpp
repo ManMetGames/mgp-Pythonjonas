@@ -1,6 +1,7 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
 #include "MGP_2526Character.h"
 #include "Perception/AISense_Hearing.h"
+#include "Perception/AISense_Sight.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
@@ -43,6 +44,10 @@ AMGP_2526Character::AMGP_2526Character()
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
     FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
     FollowCamera->bUsePawnControlRotation = false;
+
+    AIPerceptionStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("AIPerceptionStimuliSource"));
+    AIPerceptionStimuliSource->bAutoRegister = true;
+    AIPerceptionStimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
 }
 
 // Tick: stamina drain/regen
